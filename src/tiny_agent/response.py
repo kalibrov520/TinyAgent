@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
+
 @dataclass
-class Response:
-    """Structured response from the LLM"""
+class LLMResponse:
+    """Structured result returned by an LLM client."""
 
     content: str = ""
     reasoning: str | None = None
