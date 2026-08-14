@@ -1,60 +1,30 @@
-from dataclasses import dataclass, field
-
-from tiny_agent.response import LLMResponse
-
-
-@dataclass
-class TrajectoryStep:
-    """One model response and its optional tool observation."""
-
-    thought: str = ""
-    action: dict | None = None
-    observation: str | None = None
-    answer: str | None = None
-    metadata: dict | None = None
-
-
-@dataclass
-class Run:
-    """One user query and the steps taken to answer it."""
-
-    query: str
-    steps: list[TrajectoryStep] = field(default_factory=list)
+from tiny_agent.response import Response
+from tiny_agent.step import Step
 
 
 class Trajectory:
-    """Record agent execution as a sequence of runs."""
-
+    """Records agent execution as a sequence of runs."""
     def __init__(self) -> None:
-        self.runs: list[Run] = []
+        self.runs: list[dict] = []
 
-    def start(self, query: str) -> Run:
-        """Start and return a new run for a query."""
+    def initialize(self, query: str) -> None:
+        """Register a new run with the given query."""
+        self.runs.append({"query": query, "steps": []})
 
-        run = Run(query=query)
-        self.runs.append(run)
-        return run
+    def add(self, response: Response, observation: str | None = None) -> None:
+        """Record a step from a Response, optionally with an observation."""
 
-    def record(
-        self,
-        response: LLMResponse,
-        observation: str | None = None,
-    ) -> TrajectoryStep:
-        """Record and return a step in the current run."""
-
-        if not self.runs:
-            raise RuntimeError("Start a trajectory run before recording a step.")
-
-        step = TrajectoryStep(
-            thought=response.reasoning or "",
-            metadata=response.metadata,
+        # Add THOUGHT
+        step = Step(
+            thought = response.reasoning or "",
+            metadata = response.metadata
         )
 
+        # Add ACTION/OBSERVAION or ANSWER
         if observation is not None:
             step.action = response.tool_call
             step.observation = observation
         else:
             step.answer = response.content
 
-        self.runs[-1].steps.append(step)
-        return step
+        self.runs[-1]["steps"].append(step)
