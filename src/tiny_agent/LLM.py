@@ -63,10 +63,4 @@ class LLM:
             metadata = metadata
         )
 
-# Re-initialize the LLM with the updated class
-llm = LLM(model = "gemma4:e4b")
-
-# Generate a `Response` dataclass
-response = llm.generate(messages = [{"role": "user", "content": "How's life?"}])
-print(response)
 
